@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time Emotion Detection</title>
+</head>
+<body>
+    <h1>Real-time Emotion Detection</h1>
+    <button onclick="detectEmotion()">Detect Emotion</button>
+    <p id="result"></p>
+
+    <script>
+        function detectEmotion() {
+            // Your logic to capture and send the image to the backend
+            const webcam = document.getElementById('webcam');
+            const image = webcam.getScreenshot();
+            const imageData = image.replace('data:image/png;base64,', '');  // Assume image is in base64 format
+
+            // Use AJAX, Fetch API, or any other method to send a POST request to /detect_emotion
+            fetch('/detect_emotion', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 'image': imageData })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Update the result element with the detected emotion and recommended music
+                document.getElementById('result').innerHTML = `Detected Emotion: ${data.emotion}, Recommended Music: ${data.music.join(', ')}`;
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>
