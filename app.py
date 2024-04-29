@@ -8,6 +8,8 @@ from flask_sqlalchemy import SQLAlchemy
 import requests  # Add this import statement
 import random
 import logging
+import os
+from dotenv import load_dotenv
 
 # Import Spotipy and its dependencies
 import spotipy
@@ -18,12 +20,15 @@ from spotipy.oauth2 import SpotifyClientCredentials
 # Configure logging
 logging.basicConfig(filename='app.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
+# Import env file
+load_dotenv()
+
 # Initialize Flask app
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins=[os.getenv("FRONT_END_URL")])
 
 # Initialize database connection
-app.config["SQLALCHEMY_DATABASE_URI"] = "mssql+pyodbc://dbuser:admin1234@EmoSound"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_CONNECTION_STRING")
 db = SQLAlchemy(app)
 
 
@@ -38,8 +43,8 @@ class Song(db.Model):
 
 
 # Initialize Spotipy with your Spotify credentials
-spotify_client_id = '509e4b42b830425187ace300b8630794'
-spotify_client_secret = '740d58e9856b450da009daeb828c54dc'
+spotify_client_id = os.getenv("SPOTIFY_CLIENT_ID")
+spotify_client_secret = os.getenv("SPOTIFY_CLIENT_SECRET")
 sp_auth_manager = SpotifyClientCredentials(client_id=spotify_client_id, client_secret=spotify_client_secret)
 sp = spotipy.Spotify(auth_manager=sp_auth_manager)
 print()
@@ -54,7 +59,7 @@ emotion_mapping = {0: 'Angry', 1: 'Excited', 2: 'Happy', 3: 'Neutral', 4: 'Sad'}
 @app.route('/')
 def index():
     logging.info('Index route accessed.')
-    return 'Welcome to the Emotion Music Backend!'
+    return 'Welcome to ' + os.getenv("APP_NAME") + ' !.'
 
 # Route to get music recommendations based on captured image
 @app.route('/get_recommendations', methods=['POST'])
@@ -115,6 +120,19 @@ def songs_by_emotion(emotion):
 
     except Exception as e:
         return []
+
+# Route to get popular playlists
+@app.route('/popular_playlists', methods=['GET'])
+def popular_playlists_route():
+    # Call the function to get popular playlists
+    playlists_us = get_popular_playlists(market='us')
+
+    if playlists_us is not None:
+        return jsonify(playlists_us), 200  # Return JSON response with status code 200 (OK)
+    else:
+        return jsonify({
+            "error": "Failed to fetch popular playlists"
+        }), 500  # Return error message with status code 500 (Internal Server Error)
 
 # Function to get recommended music from Spotify
 def get_recommended_music(song_names):
@@ -214,18 +232,6 @@ def decode_image_base64(image_data):
         logging.error(f'An error occurred while processing base64 image: {str(e)}')
         return None
 
-# Route to get popular playlists
-@app.route('/popular_playlists', methods=['GET'])
-def popular_playlists_route():
-    # Call the function to get popular playlists
-    playlists_us = get_popular_playlists(market='us')
-
-    if playlists_us is not None:
-        return jsonify(playlists_us), 200  # Return JSON response with status code 200 (OK)
-    else:
-        return jsonify({
-            "error": "Failed to fetch popular playlists"
-        }), 500  # Return error message with status code 500 (Internal Server Error)
 
 # Run the Flask app
 if __name__ == '__main__':
