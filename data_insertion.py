@@ -1,7 +1,11 @@
 import csv
+import logging
 
 from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
+
+# Configure logging
+logging.basicConfig(filename='app.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -23,6 +27,7 @@ class Song(db.Model):
 @app.route('/insert_data_from_csv', methods=['POST'])
 def insert_data_from_csv():
     try:
+        logging.info('Attempting to insert data from CSV.')
         # Read data from CSV file
         file_path = r'C:\Users\Hirumi\Documents\2024-University_FinalProject\DataSet\dataset-20240226T185647Z-001\dataset\songs\happy.csv'
         with open(file_path, 'r', encoding='utf-8') as file:
@@ -37,6 +42,8 @@ def insert_data_from_csv():
                 )
                 db.session.add(song)
             db.session.commit()
+        logging.info('Data inserted successfully from CSV.')
         return jsonify({'message': 'Data inserted successfully'}), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        logging.error(f'Failed to insert data from CSV: {str(e)}')
+        return jsonify({'error': 'Failed to insert data'}), 500

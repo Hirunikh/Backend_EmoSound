@@ -7,10 +7,16 @@ import base64
 from flask_sqlalchemy import SQLAlchemy
 import requests  # Add this import statement
 import random
+import logging
 
 # Import Spotipy and its dependencies
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
+
+# logging.basicConfig(filename='app.log', level=logging.DEBUG)
+
+# Configure logging
+logging.basicConfig(filename='app.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -47,37 +53,45 @@ emotion_mapping = {0: 'Angry', 1: 'Excited', 2: 'Happy', 3: 'Neutral', 4: 'Sad'}
 # Index route
 @app.route('/')
 def index():
+    logging.info('Index route accessed.')
     return 'Welcome to the Emotion Music Backend!'
 
 # Route to get music recommendations based on captured image
 @app.route('/get_recommendations', methods=['POST'])
 def get_recommendations():
-    # Receive the image data from the frontend
-    image_data = request.json.get('image')
+    try:
+        logging.info('Request received for music recommendations.')
+        # Receive the image data from the frontend
+        image_data = request.json.get('image')
 
-    # Convert base64 image data to numpy array
-    img_np = np.frombuffer(base64.b64decode(image_data.split(',')[1]), dtype=np.uint8)
-    captured_image = cv2.imdecode(img_np, cv2.IMREAD_COLOR)
+        # Convert base64 image data to numpy array
+        captured_image = decode_image_base64(image_data)
+        # img_np = np.frombuffer(base64.b64decode(image_data.split(',')[1]), dtype=np.uint8)
+        # captured_image = cv2.imdecode(img_np, cv2.IMREAD_COLOR)
 
-    # Convert captured colored image to grayscale
-    captured_image_grayscale = cv2.cvtColor(captured_image, cv2.COLOR_BGR2GRAY)
+        # Convert captured colored image to grayscale
+        captured_image_grayscale = cv2.cvtColor(captured_image, cv2.COLOR_BGR2GRAY)
 
-    # Preprocess the grayscale image for emotion detection
-    img = cv2.resize(captured_image_grayscale, (64, 64))
-    img = img.astype('float32') / 255.0
-    img = np.expand_dims(img, axis=0)
-    img = np.expand_dims(img, axis=-1)
+        # Preprocess the grayscale image for emotion detection
+        img = cv2.resize(captured_image_grayscale, (64, 64))
+        img = img.astype('float32') / 255.0
+        img = np.expand_dims(img, axis=0)
+        img = np.expand_dims(img, axis=-1)
 
-    # Predict emotion
-    emotion_prediction = emotion_model.predict(img)
-    emotion_label = get_emotion_label(emotion_prediction)
+        # Predict emotion
+        emotion_prediction = emotion_model.predict(img)
+        emotion_label = get_emotion_label(emotion_prediction)
 
-    song_names = songs_by_emotion(emotion_label)
-    # Get recommended music based on the detected emotion
-    recommended_music = get_recommended_music(song_names)
+        song_names = songs_by_emotion(emotion_label)
+        # Get recommended music based on the detected emotion
+        recommended_music = get_recommended_music(song_names)
 
-    # Return detected emotion label along with music recommendations
-    return jsonify({'emotion': emotion_label, 'music': recommended_music})
+        # Return detected emotion label along with music recommendations
+        return jsonify({'emotion': emotion_label, 'music': recommended_music})
+
+    except Exception as e:
+        logging.error(f'An error occurred: {str(e)}')
+        return jsonify({'error': 'An error occurred'}), 500
 
 # Function to get the emotion label
 def get_emotion_label(prediction):
@@ -187,6 +201,17 @@ def get_tracks_for_playlist(playlist):
             formatted_tracks.append(track_info)
         return formatted_tracks
     else:
+        return None
+
+def decode_image_base64(image_data):
+    try:
+        # Convert base64 image data to numpy array
+        img_np = np.frombuffer(base64.b64decode(image_data.split(',')[1]), dtype=np.uint8)
+        captured_image = cv2.imdecode(img_np, cv2.IMREAD_COLOR)
+        return captured_image
+    except Exception as e:
+        # Handle any exceptions
+        logging.error(f'An error occurred while processing base64 image: {str(e)}')
         return None
 
 # Route to get popular playlists
