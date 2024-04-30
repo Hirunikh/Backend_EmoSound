@@ -13,7 +13,7 @@ def client():
 def test_index_route(client):
     response = client.get('/')
     assert response.status_code == 200
-    assert b'Welcome to the Emotion Music Backend!' in response.data
+    assert b'Welcome to Emosound Backend !.' in response.data
 
 # Scenario 2: Test the /get_recommendations route with valid image data
 @pytest.mark.regression
@@ -32,7 +32,6 @@ def test_get_recommendations_invalid_image(client):
     response = client.post('/get_recommendations', json=image_data)
     assert response.status_code == 500
     assert 'error' in response.json
-
 
 # Scenario 4: Test the /popular_playlists route
 @pytest.mark.regression

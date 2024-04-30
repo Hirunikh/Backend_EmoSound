@@ -12,7 +12,7 @@ def client():
 def test_index_route(client):
     response = client.get('/')
     assert response.status_code == 200
-    assert response.data.decode('utf-8') == 'Welcome to the Emotion Music Backend!'
+    assert response.data.decode('utf-8') == 'Welcome to Emosound Backend !.'
 
 # Scenario 2: Test Get Recommendations Route
 @pytest.mark.functional
@@ -23,7 +23,6 @@ def test_get_recommendations_route(client):
     data = response.json
     assert 'emotion' in data
     assert 'music' in data
-
 
 # Scenario 3: Test Popular Playlists Route
 @pytest.mark.functional
