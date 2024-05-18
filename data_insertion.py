@@ -29,7 +29,7 @@ def insert_data_from_csv():
     try:
         logging.info('Attempting to insert data from CSV.')
         # Read data from CSV file
-        file_path = r'C:\Users\Hirumi\Documents\2024-University_FinalProject\DataSet\dataset-20240226T185647Z-001\dataset\songs\happy.csv'
+        file_path = r'C:\Users\Nimesh Nilanga\Documents\Hiruni\happy.csv'
         with open(file_path, 'r', encoding='utf-8') as file:
             reader = csv.DictReader(file)
             for row in reader:
