@@ -53,7 +53,7 @@ sp = spotipy.Spotify(auth_manager=sp_auth_manager)
 print()
 
 # Load the emotion detection model
-emotion_model = keras.models.load_model('emotion_model.h5')
+emotion_model = keras.models.load_model('emotion_model_lite.h5')
 
 # Define the mapping of numerical labels to emotions
 emotion_mapping = {0: 'Angry', 1: 'Excited', 2: 'Happy', 3: 'Neutral', 4: 'Sad'}
@@ -74,14 +74,27 @@ def get_recommendations():
 
         # Convert base64 image data to numpy array
         captured_image = decode_image_base64(image_data)
-        # img_np = np.frombuffer(base64.b64decode(image_data.split(',')[1]), dtype=np.uint8)
-        # captured_image = cv2.imdecode(img_np, cv2.IMREAD_COLOR)
 
         # Convert captured colored image to grayscale
         captured_image_grayscale = cv2.cvtColor(captured_image, cv2.COLOR_BGR2GRAY)
 
-        # Preprocess the grayscale image for emotion detection
-        img = cv2.resize(captured_image_grayscale, (64, 64))
+        # Load the cascade
+        face_cascade = cv2.CascadeClassifier('./haarcascades/haarcascade_frontalface_alt2.xml')
+
+        # Detect faces
+        faces = face_cascade.detectMultiScale(captured_image_grayscale, 1.1, 4)
+
+        if (len(faces) < 1):
+            return jsonify({'error': 'No faces detected'}), 500
+
+        print("Detected number of faces: ", len(faces))
+        x, y, w, h = faces[0]
+
+        cv2.rectangle(captured_image, (x, y), (x + w, y + h), (0, 0, 255), 2)
+        detected_face = captured_image_grayscale[y:y + h, x:x + w]
+
+    # Preprocess the grayscale image for emotion detection
+        img = cv2.resize(detected_face, (64, 64))
         img = img.astype('float32') / 255.0
         img = np.expand_dims(img, axis=0)
         img = np.expand_dims(img, axis=-1)

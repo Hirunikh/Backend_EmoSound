@@ -18,6 +18,7 @@ def evaluate_model(model, X_test, y_test):
         logging.info(classification_report(y_test, y_pred_classes, zero_division=1))  # Set zero_division=1
 
         accuracy = accuracy_score(y_test, y_pred_classes)
+        print(f"Accuracy: {accuracy * 100:.2f}%")
         logging.info(f"Accuracy: {accuracy * 100:.2f}%")
     except Exception as e:
         logging.error(f'Error during model evaluation: {str(e)}')
@@ -28,7 +29,7 @@ if __name__ == "__main__":
     X_train, X_test, y_train, y_test = load_and_preprocess_data(test_data_path)
 
     # Load the trained model
-    model = keras.models.load_model('emotion_model.h5')
+    model = keras.models.load_model('emotion_model_lite.h5')
 
     # Compile the loaded model
     model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])

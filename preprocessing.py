@@ -45,3 +45,8 @@ if __name__ == "__main__":
     X_train, X_test, y_train, y_test = load_and_preprocess_data(data_path)
 
     # Rest of your code, e.g., building and training the model
+
+    # verify the shapes of the dataset
+    print("Training data shape:", X_train.shape, y_train.shape)
+    print("Testing data shape:", X_test.shape, y_test.shape)
+
