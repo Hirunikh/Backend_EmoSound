@@ -14,8 +14,6 @@ def test_decode_image_base64():
     decoded_image = decode_image_base64(invalid_image_data)
     assert decoded_image is None
 
-    # Add more test cases as needed
-
 # Run the unit tests if this script is executed directly
 if __name__ == '__main__':
     test_decode_image_base64()
